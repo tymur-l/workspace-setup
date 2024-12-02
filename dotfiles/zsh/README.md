@@ -413,13 +413,22 @@ compdef batgrep=rg
 
 #### `delta`
 
-#### `delta` completions
+##### `delta` completions
 
 [Use `delta` to generate completions for zsh](https://dandavison.github.io/delta/tips-and-tricks/shell-completion.html):
 
 ```shell
 delta --generate-completion "${SHELL##*/}" > "${ZSH_COMPLETIONS_DIR}/_delta"
 ```
+
+### Benchmarking
+
+This guide recommends using [`zsh-bench`][github-zsh-bench] to benchmark the shell performance. Follow the instructions from the project's README to measure the performance you a zsh setup and to understand how to improve it.
+
+- TODO: zprof
+  - Beginning `zmodload zsh/zprof`
+  - End `zprof`
+  - Optimization with `zcompile` inspired by diy++
 
 ## Useful links
 

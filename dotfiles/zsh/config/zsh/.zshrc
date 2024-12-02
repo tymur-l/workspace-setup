@@ -1,3 +1,6 @@
+# TODO: remove after tests
+#zmodload zsh/zprof
+
 # zsh options
 
 setopt beep nomatch
@@ -71,41 +74,75 @@ function bind_after_zvm() {
   # Unbind this key to enable fzf-git keybindings to work
   bindkey -r '^g'
 }
+bind_after_zvm
 
 bindkey '^[[Z' reverse-menu-complete
+
+# Initialize and compile plugins
+
+function zcompile-many() {
+  local f
+  for f; do zcompile -R -- "$f".zwc "$f"; done
+}
+
+if [[ "${ZSH_CUSTOM_PLUGINS_DIR}/zoxide-integration.zsh" -nt "${ZSH_CUSTOM_PLUGINS_DIR}/zoxide-integration.zsh.zwc" ]]; then
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}/zoxide-integration.zsh"
+fi
+
+if [[ "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-integration.zsh" -nt "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-integration.zsh.zwc" ]]; then
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-integration.zsh"
+fi
+
+if [ ! -e "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-tab" ]; then
+  git clone --branch="v1.1.2" --depth=1 git@github.com:Aloxaf/fzf-tab.git "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-tab"
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}"/fzf-tab/{fzf-tab.plugin.zsh,fzf-tab.zsh,lib/**/*.zsh}
+fi
+
+if [ ! -e "${ZSH_CUSTOM_PLUGINS_DIR}/fast-syntax-highlighting" ]; then
+  git clone --branch="cf318e06a9b7c9f2219d78f41b46fa6e06011fd9" --depth=1 git@github.com:zdharma-continuum/fast-syntax-highlighting.git "${ZSH_CUSTOM_PLUGINS_DIR}/fast-syntax-highlighting"
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}"/fast-syntax-highlighting/{fast-syntax-highlighting.plugin.zsh,fast-syntax-highlighting,fast-theme,share/**/*.zsh}
+fi
+
+if [ ! -e "${ZSH_CUSTOM_PLUGINS_DIR}/zsh-autosuggestions" ]; then
+  git clone --branch="v0.7.1" --depth=1 git@github.com:zsh-users/zsh-autosuggestions.git "${ZSH_CUSTOM_PLUGINS_DIR}/zsh-autosuggestions"
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}"/zsh-autosuggestions/{zsh-autosuggestions.zsh,src/**/*.zsh}
+fi
 
 # zsh-vi-mode (ZVM)
 ## Docs: https://github.com/jeffreytse/zsh-vi-mode
 
-typeset -U zvm_after_init_commands
-zvm_after_init_commands+=(
-  "bind_after_zvm"
-)
-export ZVM_INIT_MODE="sourcing"
+# TODO
+# TODO: Esc followed by instant c triggers completions. Figure out how to remove this
+# typeset -U zvm_after_init_commands
+# zvm_after_init_commands+=(
+#   "bind_after_zvm"
+# )
+# export ZVM_INIT_MODE="sourcing"
 
-# Antidote
-## https://getantidote.github.io/install
-
-ANTIDOTE_PATH="${HOME}/.antidote"
-
-# Set the root name of the plugins files (.txt and .zsh) antidote will use.
-zsh_plugins_txt="${ZDOTDIR:-~}/.zsh_plugins.txt"
-zsh_plugins_zsh="${XDG_STATE_HOME}/.zsh_plugins.zsh"
-
-# Ensure the .zsh_plugins.txt file exists so you can add plugins.
-[[ -f "${zsh_plugins_txt}" ]] || touch "${zsh_plugins_txt}"
-
-# Lazy-load antidote from its functions directory.
-fpath=("${ANTIDOTE_PATH}/functions" ${fpath})
-autoload -Uz antidote
-
-# Generate a new static file whenever .zsh_plugins.txt is updated.
-if [[ ! "${zsh_plugins_zsh}" -nt "${zsh_plugins_txt}" ]]; then
-  antidote bundle <"${zsh_plugins_txt}" >|"${zsh_plugins_zsh}"
-fi
-
-# Source your static plugins file.
-source "${zsh_plugins_zsh}"
+# TODO: try with zcompile
+# # Antidote
+# ## https://getantidote.github.io/install
+# 
+# ANTIDOTE_PATH="${HOME}/.antidote"
+# 
+# # Set the root name of the plugins files (.txt and .zsh) antidote will use.
+# zsh_plugins_txt="${ZDOTDIR:-~}/.zsh_plugins.txt"
+# zsh_plugins_zsh="${XDG_STATE_HOME}/.zsh_plugins.zsh"
+# 
+# # Ensure the .zsh_plugins.txt file exists so you can add plugins.
+# [[ -f "${zsh_plugins_txt}" ]] || touch "${zsh_plugins_txt}"
+# 
+# # Lazy-load antidote from its functions directory.
+# fpath=("${ANTIDOTE_PATH}/functions" ${fpath})
+# autoload -Uz antidote
+# 
+# # Generate a new static file whenever .zsh_plugins.txt is updated.
+# if [[ ! "${zsh_plugins_zsh}" -nt "${zsh_plugins_txt}" ]]; then
+#   antidote bundle <"${zsh_plugins_txt}" >|"${zsh_plugins_zsh}"
+# fi
+# 
+# # Source your static plugins file.
+# source "${zsh_plugins_zsh}"
 
 # Completions
 
@@ -137,11 +174,14 @@ fpath=("${ZSH_COMPLETIONS_DIR}" $fpath)
 autoload -Uz compinit
 compinit -d "${ZSH_COMPDUMP}"
 
+[[ "${ZSH_COMPDUMP}.zwc"  -nt "${ZSH_COMPDUMP}" ]] || zcompile-many "${ZSH_COMPDUMP}"
+unfunction zcompile-many
+
 # Prompt (starship)
 ##
 ## Docs: https://starship.rs/config/
 
-[ -f "${ZSH_CUSTOM_PLUGINS_DIR}/starship_init" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/starship_init"
+# [ -f "${ZSH_CUSTOM_PLUGINS_DIR}/starship_init" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/starship_init"
 
 # zoxide
 ##
@@ -232,3 +272,6 @@ function _fzf_git_fzf() {
 ## Should come after fast-syntax-highlighting.
 
 [ -f "${ZSH_CUSTOM_PLUGINS_DIR}/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+# TODO: remove after tests
+#zprof # > zsh.prof

@@ -19,7 +19,7 @@ cd ./neovim
 git checkout "${NEOVIM_VERSION}"
 ```
 
-Install [build dependencies]():
+Install build dependencies:
 
 ```shell
 ./install-dependencies.sh
@@ -55,7 +55,14 @@ sudo update-alternatives --set vi "$(which nvim)"
 
 ## Configuration
 
-- [ ] TODO
+- [ ] TODO: setup ~/.config/neovim/init.lua
+
+## Make `nvim` default pager
+
+- [ ] TODO:
+  - update-alternatives
+  - PAGER, MANPAGER
+  - https://github.com/lucc/nvimpager
 
 ## Useful links
 

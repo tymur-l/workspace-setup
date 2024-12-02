@@ -13,7 +13,7 @@
 
 This guide does not setup the following terminal utils, however, this may change in future:
 
-- [`fd`](https://github.com/sharkdp/fd)
+- [`fd`](https://github.com/sharkdp/fd).
 
 ## Useful links
 
