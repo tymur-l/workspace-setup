@@ -99,77 +99,30 @@ For a reference, see the [description of startup and shutdown files for zsh][arc
 
 ![Well-known shells startup and shutdown files](./img/shell-startup-actual.png)
 
-### `antidote` plugin manager
-
-#### [`antidote` installation][antidote-installation]
-
-Clone the `antidote` sources:
-
-```shell
-git clone https://github.com/mattmc3/antidote.git ~/.antidote
-cd ~/.antidote
-git checkout "${ANTIDOTE_VERSION}"
-```
-
-Add the following to `.zshrc` (already present in this config):
-
-```shell
-## Antidote
-### https://getantidote.github.io/install
-
-ANTIDOTE_PATH="${HOME}/.antidote"
-
-# Set the root name of the plugins files (.txt and .zsh) antidote will use.
-zsh_plugins_txt="${ZDOTDIR:-~}/.zsh_plugins.txt"
-zsh_plugins_zsh="${XDG_STATE_HOME}/.zsh_plugins.zsh"
-
-# Ensure the .zsh_plugins.txt file exists so you can add plugins.
-[[ -f "${zsh_plugins_txt}" ]] || touch "${zsh_plugins_txt}"
-
-# Lazy-load antidote from its functions directory.
-fpath=("${ANTIDOTE_PATH}/functions" ${fpath})
-autoload -Uz antidote
-
-# Generate a new static file whenever .zsh_plugins.txt is updated.
-if [[ ! "${zsh_plugins_zsh}" -nt "${zsh_plugins_txt}" ]]; then
-  antidote bundle <"${zsh_plugins_txt}" >|"${zsh_plugins_zsh}"
-fi
-
-# Source your static plugins file.
-source "${zsh_plugins_zsh}"
-```
-
 ### Prompt
 
-#### Starship
+#### Pure prompt
 
-Install [`../starship/README.md`](../starship/README.md) following the instructions.
-
-Once you [installed starship on your system](../starship/README.md#installation), export its initialization code to a file that you will load from your `.zshrc`:
-
-```shell
-starship init "${SHELL##*/}" > "${ZSH_CUSTOM_PLUGINS_DIR}/starship_init"
-```
-
-This guide recommends that your rerun this command and overwrite the existing init file every time you update starship.
-
-Then, make sure your `.zshrc` contains the following configuration:
-
-```shell
-[ -f "${ZSH_CUSTOM_PLUGINS_DIR}/starship_init" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/starship_init"
-```
+- TODO: descibe pure prompt
 
 ### Plugins
 
-The [`antidote`](#antidote-plugin-manager) config in this repo installs the following plugins:
+- [ ] TODO: mention the fast manual method for installing zsh plugins using `zcompile`
+  - [ ] TODO: update installation instructions for plugins to the new method
 
-- [`zsh-vi-mode`](#zsh-vi-mode)
 - [`fast-syntax-highlighting`](#fast-syntax-highlighting)
 - [`zsh-autosuggestions`](#zsh-autosuggestions)
 - [`zsh-completions`](https://github.com/zsh-users/zsh-completions/tree/master)
 - [`rust-zsh-completions`](https://github.com/ryutok/rust-zsh-completions)
 - [`fzf-tab`](#use-fzf-to-match-completions-via-fzf-tab)
 - [`fzf-git`](#use-fzf-to-search-for-git-objects-via-fzf-git)
+
+<!--
+- [ ] TODO: deprecate the following plugin and antidote and explain that they are slow
+
+The [`antidote`](#antidote-plugin-manager) config in this repo installs the following plugins:
+
+- [`zsh-vi-mode`](#zsh-vi-mode)
 
 Install new plugins with [`antidote`](#antidote-plugin-manager) (see the full list of [options][antidote-options]):
 
@@ -178,6 +131,7 @@ antidote install <plugin-url> [options]
 ```
 
 `antidote` will add the given plugin to the [`./config/zsh/.zsh_plugins.txt`](./config/zsh/.zsh_plugins.txt) file.
+-->
 
 Additionally, see the [Integrations](#integrations) section to setup zsh to work with other tools.
 
@@ -413,13 +367,22 @@ compdef batgrep=rg
 
 #### `delta`
 
-#### `delta` completions
+##### `delta` completions
 
 [Use `delta` to generate completions for zsh](https://dandavison.github.io/delta/tips-and-tricks/shell-completion.html):
 
 ```shell
 delta --generate-completion "${SHELL##*/}" > "${ZSH_COMPLETIONS_DIR}/_delta"
 ```
+
+### Benchmarking
+
+This guide recommends using [`zsh-bench`][github-zsh-bench] to benchmark the shell performance. Follow the instructions from the project's README to measure the performance you a zsh setup and to understand how to improve it.
+
+- TODO: zprof
+  - Beginning `zmodload zsh/zprof`
+  - End `zprof`
+  - Optimization with `zcompile` inspired by diy++
 
 ## Useful links
 
@@ -434,8 +397,7 @@ delta --generate-completion "${SHELL##*/}" > "${ZSH_COMPLETIONS_DIR}/_delta"
       - [zsh-options][zsh-options]
     - [zsh-user-guide-toc][zsh-user-guide-toc]
 - [youtube-zsh-dream-of-autonomy][youtube-zsh-dream-of-autonomy]
-- [antidote-installation][antidote-installation]
-- [antidote-options][antidote-options]
+- [github-pure-prompt][github-pure-prompt]
 - [github-zsh-vi-mode][github-zsh-vi-mode]
 - [github-fast-syntax-highlighting][github-fast-syntax-highlighting]
 - [github-zsh-syntax-highlighting][github-zsh-syntax-highlighting]
@@ -444,6 +406,7 @@ delta --generate-completion "${SHELL##*/}" > "${ZSH_COMPLETIONS_DIR}/_delta"
 - [fzf-shell-integration][fzf-shell-integration]
 - [github-fzf-tab][github-fzf-tab]
 - [github-fzf-git][github-fzf-git]
+- [github-fzf-alt-c-in-vi-mode][github-fzf-alt-c-in-vi-mode]
 
 [arch-wiki-change-default-shell]: <https://wiki.archlinux.org/title/Command-line_shell#Changing_your_default_shell>
 [arch-wiki-startup-shutdown-files]: <https://wiki.archlinux.org/title/Zsh#Startup/Shutdown_files>
@@ -455,8 +418,7 @@ delta --generate-completion "${SHELL##*/}" > "${ZSH_COMPLETIONS_DIR}/_delta"
 [zsh-options]: <https://zsh.sourceforge.io/Doc/Release/Options.html>
 [zsh-user-guide-toc]: <https://zsh.sourceforge.io/Guide/zshguide.html>
 [youtube-zsh-dream-of-autonomy]: <https://www.youtube.com/watch?v=ud7YxC33Z3w>
-[antidote-installation]: <https://getantidote.github.io/install>
-[antidote-options]: <https://getantidote.github.io/options>
+[github-pure-prompt]: <https://github.com/sindresorhus/pure>
 [github-zsh-vi-mode]: <https://github.com/jeffreytse/zsh-vi-mode>
 [github-fast-syntax-highlighting]: <https://github.com/zdharma-continuum/fast-syntax-highlighting>
 [github-zsh-syntax-highlighting]: <https://github.com/zsh-users/zsh-syntax-highlighting>
@@ -465,3 +427,4 @@ delta --generate-completion "${SHELL##*/}" > "${ZSH_COMPLETIONS_DIR}/_delta"
 [fzf-shell-integration]: <https://junegunn.github.io/fzf/shell-integration/>
 [github-fzf-tab]: <https://github.com/Aloxaf/fzf-tab>
 [github-fzf-git]: <https://github.com/junegunn/fzf-git.sh>
+[github-fzf-alt-c-in-vi-mode]: <https://github.com/junegunn/fzf/issues/1238>

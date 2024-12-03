@@ -1,5 +1,9 @@
 # Starship
 
+> [!NOTE] **Deprecation reason**
+>
+> After [measuring zsh performance with `zsh-bench`](../../zsh/README.md#benchmarking), it turned out that starship made the shell noticeably slower than it should be. Instead, this guide recommends setting up the [pure prompt](../../zsh/README.md#pure-prompt).
+
 ## Installation
 
 > [!NOTE]

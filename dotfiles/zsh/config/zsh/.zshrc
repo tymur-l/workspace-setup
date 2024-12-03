@@ -1,3 +1,21 @@
+function zcompile-many() {
+  local f
+  for f; do zcompile -R -- "$f".zwc "$f"; done
+}
+
+# Prompt (pure)
+##
+## Docs: https://github.com/sindresorhus/pure
+
+if [ ! -e "${ZSH_CUSTOM_PLUGINS_DIR}/pure-prompt" ]; then
+  git clone --branch="v1.23.0" --depth=1 git@github.com:sindresorhus/pure.git "${ZSH_CUSTOM_PLUGINS_DIR}/pure-prompt"
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}"/pure-prompt/{pure.zsh,async.zsh}
+fi
+
+fpath+=("${ZSH_CUSTOM_PLUGINS_DIR}/pure-prompt")
+autoload -U promptinit; promptinit
+prompt pure
+
 # zsh options
 
 setopt beep nomatch
@@ -64,50 +82,86 @@ bindkey -v
 bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
 
-function bind_after_zvm() {
-  bindkey '^p' history-search-backward
-  bindkey '^n' history-search-forward
-
-  # Unbind this key to enable fzf-git keybindings to work
-  bindkey -r '^g'
-}
+bindkey '^p' history-search-backward
+bindkey '^n' history-search-forward
 
 bindkey '^[[Z' reverse-menu-complete
 
-# zsh-vi-mode (ZVM)
-## Docs: https://github.com/jeffreytse/zsh-vi-mode
+# Initialize and compile plugins & completions
 
-typeset -U zvm_after_init_commands
-zvm_after_init_commands+=(
-  "bind_after_zvm"
-)
-export ZVM_INIT_MODE="sourcing"
-
-# Antidote
-## https://getantidote.github.io/install
-
-ANTIDOTE_PATH="${HOME}/.antidote"
-
-# Set the root name of the plugins files (.txt and .zsh) antidote will use.
-zsh_plugins_txt="${ZDOTDIR:-~}/.zsh_plugins.txt"
-zsh_plugins_zsh="${XDG_STATE_HOME}/.zsh_plugins.zsh"
-
-# Ensure the .zsh_plugins.txt file exists so you can add plugins.
-[[ -f "${zsh_plugins_txt}" ]] || touch "${zsh_plugins_txt}"
-
-# Lazy-load antidote from its functions directory.
-fpath=("${ANTIDOTE_PATH}/functions" ${fpath})
-autoload -Uz antidote
-
-# Generate a new static file whenever .zsh_plugins.txt is updated.
-if [[ ! "${zsh_plugins_zsh}" -nt "${zsh_plugins_txt}" ]]; then
-  antidote bundle <"${zsh_plugins_txt}" >|"${zsh_plugins_zsh}"
+if [[ "${ZSH_CUSTOM_PLUGINS_DIR}/zoxide-integration.zsh" -nt "${ZSH_CUSTOM_PLUGINS_DIR}/zoxide-integration.zsh.zwc" ]]; then
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}/zoxide-integration.zsh"
 fi
 
-# Source your static plugins file.
-source "${zsh_plugins_zsh}"
+if [[ "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-integration.zsh" -nt "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-integration.zsh.zwc" ]]; then
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-integration.zsh"
+fi
 
-# Completions
+if [ ! -e "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-tab" ]; then
+  git clone --branch="v1.1.2" --depth=1 git@github.com:Aloxaf/fzf-tab.git "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-tab"
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}"/fzf-tab/{fzf-tab.plugin.zsh,fzf-tab.zsh,lib/**/*.zsh}
+fi
+
+if [ ! -e "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-git" ]; then
+  git clone git@github.com:junegunn/fzf-git.sh.git "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-git"
+  git -C "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-git" checkout 'f730cfa1860acdb64597a0cf060d4949f1cd02a8'
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}"/fzf-git/fzf-git.sh
+fi
+
+if [ ! -e "${ZSH_CUSTOM_PLUGINS_DIR}/fast-syntax-highlighting" ]; then
+  git clone git@github.com:zdharma-continuum/fast-syntax-highlighting.git "${ZSH_CUSTOM_PLUGINS_DIR}/fast-syntax-highlighting"
+  git -C "${ZSH_CUSTOM_PLUGINS_DIR}/fast-syntax-highlighting" checkout 'cf318e06a9b7c9f2219d78f41b46fa6e06011fd9' 
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}"/fast-syntax-highlighting/{fast-syntax-highlighting.plugin.zsh,fast-highlight,fast-string-highlight,fast-theme,share/**/*.zsh}
+fi
+
+if [ ! -e "${ZSH_CUSTOM_PLUGINS_DIR}/zsh-autosuggestions" ]; then
+  git clone --branch="v0.7.1" --depth=1 git@github.com:zsh-users/zsh-autosuggestions.git "${ZSH_CUSTOM_PLUGINS_DIR}/zsh-autosuggestions"
+  zcompile-many "${ZSH_CUSTOM_PLUGINS_DIR}"/zsh-autosuggestions/{zsh-autosuggestions.zsh,src/**/*.zsh}
+fi
+
+# Completion scripts
+
+if [ ! -e "${ZSH_COMPLETIONS_DIR}/rust-zsh-completions" ]; then
+  git clone --branch="1.16.0" --depth=1 git@github.com:ryutok/rust-zsh-completions.git "${ZSH_COMPLETIONS_DIR}/rust-zsh-completions"
+  zcompile-many "${ZSH_COMPLETIONS_DIR}"/rust-zsh-completions/{rust.plugin.zsh,src/_cargo,src/_rustc,src/_rustup}
+fi
+source "${ZSH_COMPLETIONS_DIR}/rust-zsh-completions/rust.plugin.zsh"
+
+if [ ! -e "${ZSH_COMPLETIONS_DIR}/zsh-completions" ]; then
+  git clone --branch="0.35.0" --depth=1 git@github.com:zsh-users/zsh-completions.git "${ZSH_COMPLETIONS_DIR}/zsh-completions"
+  zcompile-many "${ZSH_COMPLETIONS_DIR}"/zsh-completions/{zsh-completions.plugin.zsh,src/_*}
+fi
+source "${ZSH_COMPLETIONS_DIR}/zsh-completions/zsh-completions.plugin.zsh"
+
+# # TODO: try with zcompile
+# # Antidote
+# ## https://getantidote.github.io/install
+# 
+# ANTIDOTE_PATH="${HOME}/.antidote"
+# 
+# # Set the root name of the plugins files (.txt and .zsh) antidote will use.
+# zsh_plugins_txt="${ZDOTDIR:-~}/.zsh_plugins.txt"
+# zsh_plugins_zsh="${XDG_STATE_HOME}/.zsh_plugins.zsh"
+# 
+# # Ensure the .zsh_plugins.txt file exists so you can add plugins.
+# [[ -f "${zsh_plugins_txt}" ]] || touch "${zsh_plugins_txt}"
+# 
+# # Lazy-load antidote from its functions directory.
+# fpath+=("${ANTIDOTE_PATH}/functions")
+# autoload -Uz antidote
+# 
+# # Generate a new static file whenever .zsh_plugins.txt is updated.
+# if [[ ! "${zsh_plugins_zsh}" -nt "${zsh_plugins_txt}" ]]; then
+#   antidote bundle <"${zsh_plugins_txt}" >|"${zsh_plugins_zsh}"
+# fi
+# 
+# # Configure antidote
+# zstyle ':antidote:*' zcompile 'yes'
+# 
+# # Source your static plugins file.
+# source "${zsh_plugins_zsh}"
+
+# Configure completions
 
 setopt NOCORRECT
 
@@ -133,15 +187,12 @@ zstyle :compinstall filename "${HOME}/.config/zsh/.zshrc"
 
 ZSH_COMPDUMP="${ZSH_CACHE_DIR}/.zcompdump-${HOST}"
 
-fpath=("${ZSH_COMPLETIONS_DIR}" $fpath)
+fpath+=("${ZSH_COMPLETIONS_DIR}")
 autoload -Uz compinit
 compinit -d "${ZSH_COMPDUMP}"
 
-# Prompt (starship)
-##
-## Docs: https://starship.rs/config/
-
-[ -f "${ZSH_CUSTOM_PLUGINS_DIR}/starship_init" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/starship_init"
+[[ "${ZSH_COMPDUMP}.zwc"  -nt "${ZSH_COMPDUMP}" ]] || zcompile-many "${ZSH_COMPDUMP}"
+unfunction zcompile-many
 
 # zoxide
 ##
@@ -149,7 +200,7 @@ compinit -d "${ZSH_COMPDUMP}"
 ## - https://github.com/ajeetdsouza/zoxide
 ## - https://github.com/ajeetdsouza/zoxide/wiki
 
-[ -f "${ZSH_CUSTOM_PLUGINS_DIR}/zoxide-integration.zsh" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/zoxide-integration.zsh"
+source "${ZSH_CUSTOM_PLUGINS_DIR}/zoxide-integration.zsh"
 
 # bat-extras
 ##
@@ -199,7 +250,7 @@ FZF_CTRL_T_OPTS="${FZF_COMPLETION_PATH_OPTS}"
 
 FZF_ALT_C_OPTS="${FZF_COMPLETION_DIR_OPTS}"
 
-[ -f "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-integration.zsh" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-integration.zsh"
+source "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-integration.zsh"
 
 # fzf-tab
 ##
@@ -207,10 +258,12 @@ FZF_ALT_C_OPTS="${FZF_COMPLETION_DIR_OPTS}"
 ##
 ## fzf-tab must be sourced after the `compinit` but before the zsh-autosuggestions.
 
-[ -f "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-tab/fzf-tab.plugin.zsh" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-tab/fzf-tab.plugin.zsh"
+source "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-tab/fzf-tab.plugin.zsh"
 
 # fzf-git
 ## Docs: https://github.com/junegunn/fzf-git.sh
+
+source "${ZSH_CUSTOM_PLUGINS_DIR}/fzf-git/fzf-git.sh"
 
 function _fzf_git_fzf() {
   'fzf' \
@@ -223,7 +276,7 @@ function _fzf_git_fzf() {
 ##
 ## Docs: https://github.com/zdharma-continuum/fast-syntax-highlighting
 
-[ -f "${ZSH_CUSTOM_PLUGINS_DIR}/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
+source "${ZSH_CUSTOM_PLUGINS_DIR}/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
 
 # zsh-autosuggestions
 ##
@@ -231,4 +284,10 @@ function _fzf_git_fzf() {
 ##
 ## Should come after fast-syntax-highlighting.
 
-[ -f "${ZSH_CUSTOM_PLUGINS_DIR}/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && source "${ZSH_CUSTOM_PLUGINS_DIR}/zsh-autosuggestions/zsh-autosuggestions.zsh"
+# Experimental for now. This may cause the plugin to not work in certain scenarios.
+# It requires the config maintainer to call _zsh_autosuggest_bind_widgets manually in either of the following cases:
+# - any of the widget lists change
+# - if you or another plugin wrap any of the autosuggest widgets
+ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
+source "${ZSH_CUSTOM_PLUGINS_DIR}/zsh-autosuggestions/zsh-autosuggestions.zsh"

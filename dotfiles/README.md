@@ -15,17 +15,21 @@ Configuration and setup instructions for the commonly used customized software.
 ## Software
 
 - In progress
-  - [Kitty](./kitty/README.md)
-  - [`neovim`](./neovim/README.md)
-  - [zsh](./zsh/README.md)
-  - [tmux](./tmux/README.md)
-  - [Terminal utils](./terminal-utils/README.md)
+  - [Kitty](./kitty/README.md).
+  - [`neovim`](./neovim/README.md).
+  - [zsh](./zsh/README.md).
+  - [tmux](./tmux/README.md).
+  - [Terminal utils](./terminal-utils/README.md).
 - TODO
-  - Hyperland
-  - ollama
+  - Hyperland.
+  - ollama.
     - Code suggestions in text editors (perhaps using codellama).
       - Consider sourcegraph's Cody for text editor integration.
-  - Make this setup (or a part of it) into a nix package
+  - Make this setup (or a part of it) into a nix package.
+
+### Deprecated
+
+The subtree under the [`./deprecated/`](./deprecated/) directory consists of the software that the setup used previously, but decided to abandon using it. Therefore, this guide does not recommend setting this software up as a part of this setup.
 
 <!--
 
